@@ -19,13 +19,17 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PushbackReader;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Scanner;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -57,10 +61,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
     private void writeToFile(String data, Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("password.txt", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("password.xml", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
         }
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         String ret = "";
 
         try {
-            InputStream inputStream = context.openFileInput("password.txt");
+            InputStream inputStream = context.openFileInput("password.xml");
 
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -83,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
                 StringBuilder stringBuilder = new StringBuilder();
 
                 while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    stringBuilder.append(receiveString);
+//                    stringBuilder.append(receiveString);
+                    System.out.println(receiveString);
                 }
 
                 inputStream.close();
@@ -99,11 +103,28 @@ public class MainActivity extends AppCompatActivity {
         return ret;
     }
 
-    public String createXML(String userText, String userTextCrypt) {
-        String xml;
+    public String createXML(String userText, String userTextCrypt, Context context) throws IOException {
+        String xml = "";
+        xml += "\t<data>\n" +
+                "\t\t<text>" + userText + "</text>\n" +
+                "\t\t<cipher_text>" + userTextCrypt + "</cipher_text>\n" +
+                "\t</data>\n" +
+                "</content_file>\n";
 
-        //TODO crear xml
-        return xml;
+        InputStream inputStream = context.openFileInput("password.xml");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        String line;
+        String input = "";
+
+        while ((line = reader.readLine()) != null) {
+
+            if (line.equals("</content_file>")) {
+                input += xml;
+            } else {
+                input += line + "\n";
+            }
+        }
+        return input;
     }
 
     public void crypt(View view) {
@@ -129,8 +150,8 @@ public class MainActivity extends AppCompatActivity {
             decodedText = decodeRsa.Decrypt(encodedText);
             textDecoded.setText(decodedText);
 
-//            writeToFile(encodedText, getApplicationContext());
-            System.out.println(readFromFile(getApplicationContext()));
+            writeToFile(createXML(password, encodedText, getApplicationContext()), getApplicationContext());
+            readFromFile(getApplicationContext());
 
         } catch (Exception e) {
             System.out.println("An error ocurred encrypting the password");
