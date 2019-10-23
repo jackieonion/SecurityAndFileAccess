@@ -1,5 +1,6 @@
 package com.example.security_and_file_access;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -8,6 +9,7 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +18,12 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -50,50 +58,82 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void writeToFile(String data, Context context) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("password.txt", Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    private String readFromFile(Context context) {
+
+        String ret = "";
+
+        try {
+            InputStream inputStream = context.openFileInput("password.txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+
+        return ret;
+    }
+
+    public String createXML(String userText, String userTextCrypt) {
+        String xml;
+
+        //TODO crear xml
+        return xml;
+    }
+
     public void crypt(View view) {
 
         try {
+            String password = this.text.getText().toString();
+            String encodedText;
+            String decodedText;
+            RSA encodeRsa = new RSA();
 
-            //Obtenemos el texto desde el cuadro de texto
-            String original = this.text.getText().toString();
+            encodeRsa.setContext(getBaseContext());
+            encodeRsa.genKeyPair(1024);
+            encodeRsa.saveToDiskPrivateKey("rsa.pri");
+            encodeRsa.saveToDiskPublicKey("rsa.pub");
+            encodedText = encodeRsa.Encrypt(password);
+            textEncoded.setText(encodedText);
 
+            RSA decodeRsa = new RSA();
 
-            RSA rsa = new RSA();
+            decodeRsa.setContext(getBaseContext());
+            decodeRsa.openFromDiskPrivateKey("rsa.pri");
+            decodeRsa.openFromDiskPublicKey("rsa.pub");
+            decodedText = decodeRsa.Decrypt(encodedText);
+            textDecoded.setText(decodedText);
 
-            //le asignamos el Contexto
-            rsa.setContext(getBaseContext());
+//            writeToFile(encodedText, getApplicationContext());
+            System.out.println(readFromFile(getApplicationContext()));
 
-            //Generamos un juego de claves
-            rsa.genKeyPair(1024);
-
-            //Guardamos en la memoria las claves
-            rsa.saveToDiskPrivateKey("rsa.pri");
-            rsa.saveToDiskPublicKey("rsa.pub");
-
-            //Ciframos
-            String encode_text = rsa.Encrypt(original);
-
-            //Mostramos el texto cifrado
-            textEncoded.setText(encode_text);
-
-
-            //Creamos otro objeto de nuestra clase RSA
-            RSA rsa2 = new RSA();
-
-            //Le pasamos el contexto
-            rsa2.setContext(getBaseContext());
-
-            //Cargamos las claves que creamos anteriormente
-            rsa2.openFromDiskPrivateKey("rsa.pri");
-            rsa2.openFromDiskPublicKey("rsa.pub");
-
-            //Desciframos
-            String decode_text = rsa2.Decrypt(encode_text);
-
-            //Mostramos el texto ya descifrado
-            textDecoded.setText(decode_text);
         } catch (Exception e) {
-
+            System.out.println("An error ocurred encrypting the password");
         }
 
 
