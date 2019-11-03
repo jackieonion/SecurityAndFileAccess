@@ -1,69 +1,58 @@
 package com.example.security_and_file_access;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.TextView;
-
-import org.w3c.dom.Text;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PushbackReader;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Scanner;
-
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button button;
-    private TextView text;
-    private TextView textEncoded;
-    private TextView textDecoded;
-
-    public MainActivity() throws NoSuchAlgorithmException, NoSuchPaddingException {
-    }
+    private EditText textInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.text = findViewById(R.id.editText);
-        this.textEncoded = findViewById(R.id.textView);
-        this.textDecoded = findViewById(R.id.textView2);
-        this.button = findViewById(R.id.button2);
+        this.textInput = findViewById(R.id.editText);
+        Button button = findViewById(R.id.button2);
+        Button registerListButton = findViewById(R.id.button);
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 crypt(v);
             }
         });
-
+        registerListButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                startActivity();
+            }
+        });
     }
-    private void writeToFile(String data, Context context) {
+
+    private void startActivity(){
+        Intent intent = new Intent(this, RegisterListActivity.class);
+        startActivity(intent);
+    }
+
+    private void writeToFile(String data ) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("password.xml", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput("data.xml", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
         }
@@ -72,67 +61,80 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String readFromFile(Context context) {
-
-        String ret = "";
-
-        try {
-            InputStream inputStream = context.openFileInput("password.xml");
-
-            if ( inputStream != null ) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String receiveString = "";
-                StringBuilder stringBuilder = new StringBuilder();
-
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
-//                    stringBuilder.append(receiveString);
-                    System.out.println(receiveString);
-                }
-
-                inputStream.close();
-                ret = stringBuilder.toString();
-            }
+    private boolean checkFile() throws IOException{
+        boolean isCreated;
+        try{
+            InputStream inputStream = getApplication().openFileInput("data.xml");
+            inputStream.close();
+            isCreated = true;
         }
-        catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
-        } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
+        catch (IOException error){
+            Log.i("Exception", error.toString());
+            isCreated = false;
         }
-
-        return ret;
+        return isCreated;
     }
 
-    public String createXML(String userText, String userTextCrypt, Context context) throws IOException {
-        String xml = "";
-        xml += "\t<data>\n" +
-                "\t\t<text>" + userText + "</text>\n" +
-                "\t\t<cipher_text>" + userTextCrypt + "</cipher_text>\n" +
+    private void createFile(String password, String encodedPassword){
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss", Locale.FRANCE);
+        Date date = new Date(System.currentTimeMillis());
+        String head = "<?xml version="+ '"' + "1.0"+ '"' + "encoding=" + '"' + "UTF-8" + '"' + "?>\n" +
+                "<content_file>\n" +
+                "\t<data id="+ '"' + 1 + '"' +">\n" +
+                "\t\t<time>" + formatter.format(date) + "</time>\n" +
+                "\t\t<textInput>" + password + "</textInput>\n" +
+                "\t\t<cipher_text>" + encodedPassword + "</cipher_text>\n" +
                 "\t</data>\n" +
                 "</content_file>\n";
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput("data.xml", Context.MODE_PRIVATE));
+            outputStreamWriter.write(head);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
 
-        InputStream inputStream = context.openFileInput("password.xml");
+    public String addData(String userText, String userTextCrypt ) throws IOException {
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss", Locale.FRANCE);
+        Date date = new Date(System.currentTimeMillis());
+        int idCount = 1;
+        String xml = "";
+        InputStream inputStream = getApplication().openFileInput("data.xml");
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
-        String input = "";
+        StringBuilder input = new StringBuilder();
 
         while ((line = reader.readLine()) != null) {
-
+            if(line.contains("id=")){
+                idCount++;
+            }
             if (line.equals("</content_file>")) {
-                input += xml;
+                xml += "\t<data id="+'"'+ idCount + '"' +">\n" +
+                        "\t\t<time>" + formatter.format(date) + "</time>\n" +
+                        "\t\t<textInput>" + userText + "</textInput>\n" +
+                        "\t\t<cipher_text>" + userTextCrypt + "</cipher_text>\n" +
+                        "\t</data>\n" +
+                        "</content_file>\n";
+                input.append(xml);
             } else {
-                input += line + "\n";
+                input.append(line).append("\n");
             }
         }
-        return input;
+        return input.toString();
+    }
+
+    private void dataAdded(){
+        Toast.makeText(this,"Data added correctly", Toast.LENGTH_SHORT)
+                .show();
     }
 
     public void crypt(View view) {
 
         try {
-            String password = this.text.getText().toString();
+            String password = this.textInput.getText().toString();
             String encodedText;
-            String decodedText;
             RSA encodeRsa = new RSA();
 
             encodeRsa.setContext(getBaseContext());
@@ -140,23 +142,26 @@ public class MainActivity extends AppCompatActivity {
             encodeRsa.saveToDiskPrivateKey("rsa.pri");
             encodeRsa.saveToDiskPublicKey("rsa.pub");
             encodedText = encodeRsa.Encrypt(password);
-            textEncoded.setText(encodedText);
 
             RSA decodeRsa = new RSA();
 
             decodeRsa.setContext(getBaseContext());
             decodeRsa.openFromDiskPrivateKey("rsa.pri");
             decodeRsa.openFromDiskPublicKey("rsa.pub");
-            decodedText = decodeRsa.Decrypt(encodedText);
-            textDecoded.setText(decodedText);
 
-            writeToFile(createXML(password, encodedText, getApplicationContext()), getApplicationContext());
-            readFromFile(getApplicationContext());
+            if(checkFile()){
+                writeToFile(addData(password, encodedText));
+                textInput.setText("");
+                dataAdded();
+            }
+            else{
+                createFile(password, encodedText);
+                textInput.setText("");
+                dataAdded();
+            }
 
         } catch (Exception e) {
             System.out.println("An error ocurred encrypting the password");
         }
-
-
     }
 }

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">security_and_file_access</string>
     <string name="action_settings">Settings</string>
-    <string name="button">Encrypt</string>
-    <string name="inputText">Write something</string>
+    <string name="button">Register</string>
+    <string name="inputText">Write register</string>
+    <string name="showRegister">Show Register</string>
 </resources>
