@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             decodeRsa.openFromDiskPublicKey();
 
             if(!password.isEmpty()){
-            if (checkFile(Strings.fileName)) {
+            if (checkFile()) {
                 writeToFile(xmlFormat(password, encodedText));
                 textInput.setText("");
             } else {
