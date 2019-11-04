@@ -9,12 +9,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class RegisterListActivity extends Activity {
+public class RegisterActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register_list);
+        setContentView(R.layout.activity_register);
 
         TextView txtView = findViewById(R.id.textView);
 
