@@ -41,5 +41,4 @@ public class RegisterListActivity extends Activity {
         }
         txtView.setText(byteArrayOutputStream.toString());
     }
-
 }

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -24,6 +25,7 @@ class Strings {
     final static String fileName = "data.xml";
     final static String dateFormatPattern = "yyyy-MM-dd 'at' HH:mm:ss";
     final static String successfulToastMessage = "Data added correctly";
+    final static String registerIsEmpty = "Register can not be empty";
     final static String privateKeyPath = "rsa.pri";
     final static String publicKeyPath = "rsa.pub";
     final static String errorEncryptingText = "An error occurred encrypting the password";
@@ -46,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 encodeData(v);
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(textInput.getWindowToken(), 0);
             }
         });
         registerListButton.setOnClickListener(new View.OnClickListener() {
@@ -131,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
         return input.toString();
     }
 
-    private void showSuccessToast() {
-        Toast.makeText(this, Strings.successfulToastMessage, Toast.LENGTH_SHORT)
+    private void showStatusToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT)
                 .show();
     }
 
@@ -155,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             decodeRsa.openFromDiskPrivateKey(Strings.privateKeyPath);
             decodeRsa.openFromDiskPublicKey(Strings.publicKeyPath);
 
+            if(!password.isEmpty()){
             if (checkFile(Strings.fileName)) {
                 writeToFile(xmlFormat(password, encodedText));
                 textInput.setText("");
@@ -162,7 +167,11 @@ public class MainActivity extends AppCompatActivity {
                 createFile(password, encodedText);
                 textInput.setText("");
             }
-            showSuccessToast();
+            showStatusToast(Strings.successfulToastMessage);
+            }
+            else{
+                showStatusToast(Strings.registerIsEmpty);
+            }
 
         } catch (Exception e) {
             System.out.println(Strings.errorEncryptingText);
