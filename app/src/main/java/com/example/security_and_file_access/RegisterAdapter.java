@@ -8,10 +8,10 @@ import java.util.List;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class RegisterAdapter extends RecyclerView.Adapter<RegisterAdapter.ViewHolder> {
-    private List<RegisterModel> registerMOdelsList;
+    private List<RegisterModel> registerModelsList;
 
     public RegisterAdapter(List<RegisterModel> userModelList) {
-        this.registerMOdelsList = userModelList;
+        this.registerModelsList = userModelList;
     }
 
     @Override
@@ -23,10 +23,10 @@ public class RegisterAdapter extends RecyclerView.Adapter<RegisterAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String id = registerMOdelsList.get(position).id;
-        String password = registerMOdelsList.get(position).password;
-        String encodedPassword = registerMOdelsList.get(position).encodedPassword;
-        String date = registerMOdelsList.get(position).date;
+        String id = registerModelsList.get(position).id;
+        String password = registerModelsList.get(position).password;
+        String encodedPassword = registerModelsList.get(position).encodedPassword;
+        String date = registerModelsList.get(position).date;
         holder.password.setText(password);
         holder.id.setText(id);
         holder.date.setText(date);
@@ -35,7 +35,7 @@ public class RegisterAdapter extends RecyclerView.Adapter<RegisterAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return registerMOdelsList.size();
+        return registerModelsList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

@@ -14,7 +14,7 @@ import java.util.List;
 
 public class RegisterListActivity extends AppCompatActivity {
 
-    ArrayList<RegisterModel> registerList = new ArrayList<RegisterModel>();
+    ArrayList<RegisterModel> registerList = new ArrayList<>();
     RegisterAdapter adapter;
 
     @Override
@@ -28,21 +28,21 @@ public class RegisterListActivity extends AppCompatActivity {
         }
         RecyclerView recyclerViewRegister = findViewById(R.id.recyclerViewRegister);
         recyclerViewRegister.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RegisterAdapter( registerList);
+        adapter = new RegisterAdapter(registerList);
         recyclerViewRegister.setAdapter(adapter);
     }
 
     private void loadData() throws IOException {
-        RegisterModel regiserModel;
-        int idCount = 1;
+        RegisterModel registerModel;
+        int idCounter = 1;
         String id = "", password = "", date = "", encodedPassword = "";
-         InputStream inputStream = getApplication().openFileInput("data.xml");
+        InputStream inputStream = getApplication().openFileInput("data.xml");
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
         while ((line = reader.readLine()) != null) {
             if(line.contains("id=")){
-                id = idCount + "";
-                idCount++;
+                id = idCounter + "";
+                idCounter ++;
             }
             else if (line.contains("time")) {
                 date = line;
@@ -54,7 +54,7 @@ public class RegisterListActivity extends AppCompatActivity {
                 encodedPassword = line;
             }
         }
-        regiserModel = new RegisterModel(id, password,date , encodedPassword);
-        registerList.add(regiserModel);
+        registerModel = new RegisterModel(id, password, date, encodedPassword);
+        registerList.add(registerModel);
     }
 }

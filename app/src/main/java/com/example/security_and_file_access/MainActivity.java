@@ -19,6 +19,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+class Strings {
+    final static String fileName = "data.xml";
+    final static String dateFormatPattern = "yyyy-MM-dd 'at' HH:mm:ss";
+    final static String successfulToastMessage = "Data added correctly";
+    final static String privateKeyPath = "rsa.pri";
+    final static String publicKeyPath = "rsa.pub";
+    final static String errorEncryptingText = "An error occurred encrypting the password";
+    final static String errorWritingText = "File writing failed: ";
+}
+
 public class MainActivity extends AppCompatActivity {
 
     private EditText textInput;
@@ -34,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                crypt(v);
+                encodeData(v);
             }
         });
         registerListButton.setOnClickListener(new View.OnClickListener(){
@@ -52,27 +62,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void writeToFile(String data ) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput("data.xml", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput(Strings.fileName, Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
         }
         catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+            Log.e("Exception", Strings.errorWritingText + e.toString());
         }
     }
 
-    private boolean checkFile() throws IOException{
-        boolean isCreated;
+    private boolean checkFile(String file) {
         try{
-            InputStream inputStream = getApplication().openFileInput("data.xml");
+            InputStream inputStream = getApplication().openFileInput(file);
             inputStream.close();
-            isCreated = true;
+            return true;
         }
         catch (IOException error){
             Log.i("Exception", error.toString());
-            isCreated = false;
+            return false;
         }
-        return isCreated;
     }
 
     private void createFile(String password, String encodedPassword){
@@ -87,31 +95,31 @@ public class MainActivity extends AppCompatActivity {
                 "\t</data>\n" +
                 "</content_file>\n";
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput("data.xml", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput(Strings.fileName, Context.MODE_PRIVATE));
             outputStreamWriter.write(head);
             outputStreamWriter.close();
         }
         catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+            Log.e("Exception", Strings.errorWritingText + e.toString());
         }
     }
 
-    public String addData(String userText, String userTextCrypt ) throws IOException {
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss", Locale.FRANCE);
+    public String xmlFormat(String userText, String userTextCrypt) throws IOException {
+        SimpleDateFormat formatter= new SimpleDateFormat(Strings.dateFormatPattern, Locale.FRANCE);
         Date date = new Date(System.currentTimeMillis());
-        int idCount = 1;
+        int idCounter = 1;
         String xml = "";
-        InputStream inputStream = getApplication().openFileInput("data.xml");
+        InputStream inputStream = getApplication().openFileInput(Strings.fileName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
         StringBuilder input = new StringBuilder();
 
         while ((line = reader.readLine()) != null) {
             if(line.contains("id=")){
-                idCount++;
+                idCounter++;
             }
             if (line.equals("</content_file>")) {
-                xml += "\t<data id="+'"'+ idCount + '"' +">\n" +
+                xml += "\t<data id="+'"'+ idCounter + '"' +">\n" +
                         "\t\t<time>" + formatter.format(date) + "</time>\n" +
                         "\t\t<textInput>" + userText + "</textInput>\n" +
                         "\t\t<cipher_text>" + userTextCrypt + "</cipher_text>\n" +
@@ -125,12 +133,12 @@ public class MainActivity extends AppCompatActivity {
         return input.toString();
     }
 
-    private void dataAdded(){
-        Toast.makeText(this,"Data added correctly", Toast.LENGTH_SHORT)
+    private void showSuccessToast(){
+        Toast.makeText(this,Strings.successfulToastMessage, Toast.LENGTH_SHORT)
                 .show();
     }
 
-    public void crypt(View view) {
+    public void encodeData(View view) {
 
         try {
             String password = this.textInput.getText().toString();
@@ -139,29 +147,28 @@ public class MainActivity extends AppCompatActivity {
 
             encodeRsa.setContext(getBaseContext());
             encodeRsa.genKeyPair(1024);
-            encodeRsa.saveToDiskPrivateKey("rsa.pri");
-            encodeRsa.saveToDiskPublicKey("rsa.pub");
+            encodeRsa.saveToDiskPrivateKey(Strings.privateKeyPath);
+            encodeRsa.saveToDiskPublicKey(Strings.publicKeyPath);
             encodedText = encodeRsa.Encrypt(password);
 
             RSA decodeRsa = new RSA();
 
             decodeRsa.setContext(getBaseContext());
-            decodeRsa.openFromDiskPrivateKey("rsa.pri");
-            decodeRsa.openFromDiskPublicKey("rsa.pub");
+            decodeRsa.openFromDiskPrivateKey(Strings.privateKeyPath);
+            decodeRsa.openFromDiskPublicKey(Strings.publicKeyPath);
 
-            if(checkFile()){
-                writeToFile(addData(password, encodedText));
+            if(checkFile(Strings.fileName)){
+                writeToFile(xmlFormat(password, encodedText));
                 textInput.setText("");
-                dataAdded();
             }
             else{
                 createFile(password, encodedText);
                 textInput.setText("");
-                dataAdded();
             }
+            showSuccessToast();
 
         } catch (Exception e) {
-            System.out.println("An error ocurred encrypting the password");
+            System.out.println(Strings.errorEncryptingText);
         }
     }
 }
