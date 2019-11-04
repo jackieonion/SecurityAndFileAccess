@@ -3,12 +3,13 @@ package com.example.security_and_file_access;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -47,48 +48,46 @@ public class MainActivity extends AppCompatActivity {
                 encodeData(v);
             }
         });
-        registerListButton.setOnClickListener(new View.OnClickListener(){
+        registerListButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 startActivity();
             }
         });
     }
 
-    private void startActivity(){
+    private void startActivity() {
         Intent intent = new Intent(this, RegisterListActivity.class);
         startActivity(intent);
     }
 
-    private void writeToFile(String data ) {
+    private void writeToFile(String data) {
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput(Strings.fileName, Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("Exception", Strings.errorWritingText + e.toString());
         }
     }
 
     private boolean checkFile(String file) {
-        try{
+        try {
             InputStream inputStream = getApplication().openFileInput(file);
             inputStream.close();
             return true;
-        }
-        catch (IOException error){
+        } catch (IOException error) {
             Log.i("Exception", error.toString());
             return false;
         }
     }
 
-    private void createFile(String password, String encodedPassword){
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss", Locale.FRANCE);
+    private void createFile(String password, String encodedPassword) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss", Locale.FRANCE);
         Date date = new Date(System.currentTimeMillis());
-        String head = "<?xml version="+ '"' + "1.0"+ '"' + "encoding=" + '"' + "UTF-8" + '"' + "?>\n" +
+        String head = "<?xml version=" + '"' + "1.0" + '"' + "encoding=" + '"' + "UTF-8" + '"' + "?>\n" +
                 "<content_file>\n" +
-                "\t<data id="+ '"' + 1 + '"' +">\n" +
+                "\t<data id=" + '"' + 1 + '"' + ">\n" +
                 "\t\t<time>" + formatter.format(date) + "</time>\n" +
                 "\t\t<textInput>" + password + "</textInput>\n" +
                 "\t\t<cipher_text>" + encodedPassword + "</cipher_text>\n" +
@@ -98,14 +97,13 @@ public class MainActivity extends AppCompatActivity {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplication().openFileOutput(Strings.fileName, Context.MODE_PRIVATE));
             outputStreamWriter.write(head);
             outputStreamWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("Exception", Strings.errorWritingText + e.toString());
         }
     }
 
     public String xmlFormat(String userText, String userTextCrypt) throws IOException {
-        SimpleDateFormat formatter= new SimpleDateFormat(Strings.dateFormatPattern, Locale.FRANCE);
+        SimpleDateFormat formatter = new SimpleDateFormat(Strings.dateFormatPattern, Locale.FRANCE);
         Date date = new Date(System.currentTimeMillis());
         int idCounter = 1;
         String xml = "";
@@ -115,11 +113,11 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder input = new StringBuilder();
 
         while ((line = reader.readLine()) != null) {
-            if(line.contains("id=")){
+            if (line.contains("id=")) {
                 idCounter++;
             }
             if (line.equals("</content_file>")) {
-                xml += "\t<data id="+'"'+ idCounter + '"' +">\n" +
+                xml += "\t<data id=" + '"' + idCounter + '"' + ">\n" +
                         "\t\t<time>" + formatter.format(date) + "</time>\n" +
                         "\t\t<textInput>" + userText + "</textInput>\n" +
                         "\t\t<cipher_text>" + userTextCrypt + "</cipher_text>\n" +
@@ -133,8 +131,8 @@ public class MainActivity extends AppCompatActivity {
         return input.toString();
     }
 
-    private void showSuccessToast(){
-        Toast.makeText(this,Strings.successfulToastMessage, Toast.LENGTH_SHORT)
+    private void showSuccessToast() {
+        Toast.makeText(this, Strings.successfulToastMessage, Toast.LENGTH_SHORT)
                 .show();
     }
 
@@ -157,11 +155,10 @@ public class MainActivity extends AppCompatActivity {
             decodeRsa.openFromDiskPrivateKey(Strings.privateKeyPath);
             decodeRsa.openFromDiskPublicKey(Strings.publicKeyPath);
 
-            if(checkFile(Strings.fileName)){
+            if (checkFile(Strings.fileName)) {
                 writeToFile(xmlFormat(password, encodedText));
                 textInput.setText("");
-            }
-            else{
+            } else {
                 createFile(password, encodedText);
                 textInput.setText("");
             }
