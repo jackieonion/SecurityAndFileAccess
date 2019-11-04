@@ -29,6 +29,7 @@ public class RegisterActivity extends Activity {
 
         int i;
         try {
+            assert inputStream != null;
             i = inputStream.read();
             while (i != -1) {
                 byteArrayOutputStream.write(i);

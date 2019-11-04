@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean checkFile(String file) {
+    private boolean checkFile() {
         try {
-            InputStream inputStream = getApplication().openFileInput(file);
+            InputStream inputStream = getApplication().openFileInput(Strings.fileName);
             inputStream.close();
             return true;
         } catch (IOException error) {
@@ -144,18 +144,18 @@ public class MainActivity extends AppCompatActivity {
             RSA encodeRsa = new RSA();
 
             encodeRsa.setContext(getBaseContext());
-            encodeRsa.genKeyPair(1024);
-            encodeRsa.saveToDiskPrivateKey(Strings.privateKeyPath);
-            encodeRsa.saveToDiskPublicKey(Strings.publicKeyPath);
+            encodeRsa.genKeyPair();
+            encodeRsa.saveToDiskPrivateKey();
+            encodeRsa.saveToDiskPublicKey();
             encodedText = encodeRsa.Encrypt(password);
 
             RSA decodeRsa = new RSA();
 
             decodeRsa.setContext(getBaseContext());
-            decodeRsa.openFromDiskPrivateKey(Strings.privateKeyPath);
-            decodeRsa.openFromDiskPublicKey(Strings.publicKeyPath);
+            decodeRsa.openFromDiskPrivateKey();
+            decodeRsa.openFromDiskPublicKey();
 
-            if (checkFile(Strings.fileName)) {
+            if (checkFile()) {
                 writeToFile(xmlFormat(password, encodedText));
                 textInput.setText("");
             } else {
